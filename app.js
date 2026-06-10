@@ -92,22 +92,10 @@ function loadData(){
 }
 
 function requirePremium(feat) {
-  if(!app.isPremium) {
-    document.getElementById('sub-modal').style.display='flex';
-    return true;
-  }
   return false;
 }
 
 function checkJournalLimit() {
-  if(app.isPremium) return false;
-  const currentMonth = new Date().getMonth();
-  const allEntries = [...app.ventEntries, ...app.gratEntries];
-  const thisMonthCount = allEntries.filter(e => new Date(e.d).getMonth() === currentMonth).length;
-  if(thisMonthCount >= 5) {
-     requirePremium('Journal Limits');
-     return true;
-  }
   return false;
 }
 
@@ -351,7 +339,6 @@ function saveExam() {
 }
 
 function saveGratitude() {
-  if(checkJournalLimit()) return;
   const t1 = document.getElementById('g1').value.trim();
   if(!t1) return;
   app.gratEntries.push({d: Date.now(), t1});
@@ -377,7 +364,6 @@ function renderExercises(){
             <div style="flex:1;">
               <div style="font-size:15px;font-weight:800;margin-bottom:2px;display:flex;align-items:center;gap:6px;">
                 ${e.t}
-                ${e.pro ? `<span style="font-size:9px;background:linear-gradient(135deg,#FFD600,#FF9F00);color:#000;padding:2px 6px;border-radius:10px;font-weight:900;">PRO</span>` : ''}
               </div>
               <div style="font-size:11px;color:var(--muted);">${e.dur} • ${e.cat}</div>
             </div>
@@ -522,7 +508,6 @@ function renderAccount(){
         <div class="av" style="width:64px;height:64px;font-size:24px;margin:0 auto 12px;">${CU.name?CU.name[0].toUpperCase():'G'}</div>
         <div style="font-size:18px;font-weight:800;">${CU.name||'Guest'}</div>
         <div style="font-size:12px;color:var(--muted);">${CU.email||'Not logged in'}</div>
-        ${app.isPremium ? '<div style="margin-top:10px;font-size:11px;color:#000;background:linear-gradient(135deg,#FFD600,#FF9F00);display:inline-block;padding:4px 12px;border-radius:20px;font-weight:800;">⭐ Premium Member</div>' : '<button class="btn" style="margin-top:12px;font-size:11px;color:var(--yellow);border:1px solid var(--yellow);background:transparent;padding:4px 12px;border-radius:20px;" onclick="document.getElementById(\'sub-modal\').style.display=\'flex\'">Upgrade to Premium</button>'}
       </div>
       
       <button class="btn" style="width:100%;padding:14px;background:var(--hi);border-radius:12px;text-align:left;color:#fff;margin-bottom:10px;font-weight:600;display:flex;justify-content:space-between;" onclick="showSetPin()">
@@ -543,15 +528,15 @@ function renderAccount(){
 // ═══════════════════════════════════════════════
 // NEW V2 MODAL HANDLERS
 // ═══════════════════════════════════════════════
-function openTimer() { if(requirePremium('Timer')) return; document.getElementById('timer-modal').style.display='flex'; }
-function openSleep() { if(requirePremium('Sleep Tracking')) return; document.getElementById('sleep-modal').style.display='flex'; }
+function openTimer() { document.getElementById('timer-modal').style.display='flex'; }
+function openSleep() { document.getElementById('sleep-modal').style.display='flex'; }
 function saveSleep() {
   const hrs = document.getElementById('slp-hrs').value;
   if(hrs) { app.sleepLogs.push({d: new Date().toDateString(), hrs}); ls('slp', app.sleepLogs); }
   document.getElementById('sleep-modal').style.display='none';
   if(app.tab === 'journal') renderJournal();
 }
-function openHabits() { if(requirePremium('Habit Tracking')) return; document.getElementById('habit-modal').style.display='flex'; renderHabits(); }
+function openHabits() { document.getElementById('habit-modal').style.display='flex'; renderHabits(); }
 function renderHabits() {
   document.getElementById('habit-list').innerHTML = ['water','walk','read','phone','friend'].map(k => `
     <div class="ex-item" style="border-color:${app.habits[k]?'var(--green)':'var(--b)'};" onclick="toggleHabit('${k}')">
@@ -562,9 +547,9 @@ function renderHabits() {
 }
 function toggleHabit(k) { app.habits[k] = !app.habits[k]; ls('hab', app.habits); renderHabits(); if(app.tab === 'journal') renderJournal(); }
 
-function openMusic() { if(requirePremium('Meditation Music')) return; document.getElementById('music-modal').style.display='flex'; }
-function openFriend() { if(requirePremium('Friend Chat')) return; document.getElementById('friend-modal').style.display='flex'; }
-function openLeaderboard() { if(requirePremium('Leaderboard')) return; document.getElementById('leaderboard-modal').style.display='flex'; document.getElementById('lb-you').textContent = app.xp + ' XP'; }
+function openMusic() { document.getElementById('music-modal').style.display='flex'; }
+function openFriend() { document.getElementById('friend-modal').style.display='flex'; }
+function openLeaderboard() { document.getElementById('leaderboard-modal').style.display='flex'; document.getElementById('lb-you').textContent = app.xp + ' XP'; }
 
 let pTmr = null, pLeft = 25*60;
 function startTimer() {
@@ -614,7 +599,6 @@ function toggleMusic(type) {
 // VENT SPACE
 // ═══════════════════════════════════════════════
 function openVent(){
-  if(requirePremium('Vent Space')) return;
   document.getElementById('vent').style.display = 'flex';
   document.getElementById('venttxt').value = '';
   document.getElementById('vwc').textContent = '0 words';
@@ -632,7 +616,6 @@ function closeVent(){
 }
 
 function saveVent(){
-  if(checkJournalLimit()) return;
   const t = document.getElementById('venttxt').value.trim();
   if(!t) return closeVent();
   app.ventEntries.push({d: Date.now(), t});
@@ -658,10 +641,6 @@ function openJEntry(i) {
 // ═══════════════════════════════════════════════
 function startEx(id) {
   const e = EX.find(x=>x.id===id);
-  if(e.pro && !app.isPremium) {
-    document.getElementById('sub-modal').style.display = 'flex';
-    return;
-  }
   app.pEx = e;
   const p = document.getElementById('player');
   p.style.display = 'flex';
@@ -722,7 +701,6 @@ function runExPhase(stepIdx) {
 // ZEN AI MOCK
 // ═══════════════════════════════════════════════
 function openAI() {
-  if(!app.isPremium && app.aiMsgCountToday >= 10) { requirePremium('AI Limits'); return; }
   document.getElementById('aisc').style.display = 'flex';
   const msgs = document.getElementById('ai-msgs');
   if(msgs.innerHTML === '') {
@@ -735,8 +713,6 @@ function closeAI() {
 }
 
 function sendAI() {
-  if(!app.isPremium && app.aiMsgCountToday >= 10) { requirePremium('AI Limits'); return; }
-  
   const inp = document.getElementById('ai-inp');
   const text = inp.value.trim();
   if(!text) return;
