@@ -42,16 +42,35 @@ html, body {
 
 @media (min-width: 600px) {
   body {
-    background: #0a0a0a;
+    background: radial-gradient(circle at center, #2a1b38 0%, #000000 100%);
     display: flex;
     align-items: center;
     justify-content: center;
   }
   #app {
-    height: 92vh;
+    height: 90vh;
     max-height: 850px;
-    border-radius: 24px;
-    border: 1px solid #222;
+    border-radius: 44px;
+    border: 14px solid #222;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.1);
+    position: relative;
+    background: #000;
+  }
+  #app::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #222;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    z-index: 9999;
+  }
+  #splash, .asc, #lock, #setpin, #ob {
+    border-radius: 30px; /* Match inner corners */
   }
 }
 
