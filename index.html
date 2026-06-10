@@ -249,9 +249,10 @@
   <div id="music-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
     <div class="sheet">
       <div style="font-size:24px;font-weight:800;margin-bottom:16px;">Meditation Music</div>
-      <div class="mtrack" onclick="this.classList.toggle('playing')"><div style="font-size:24px;">🎧</div><div><div style="font-size:14px;font-weight:700;">Lo-Fi Focus</div><div style="font-size:11px;color:var(--muted);">YouTube stream</div></div></div>
-      <div class="mtrack" onclick="this.classList.toggle('playing')"><div style="font-size:24px;">🎹</div><div><div style="font-size:14px;font-weight:700;">Deep Piano</div><div style="font-size:11px;color:var(--muted);">Relaxation</div></div></div>
-      <div class="mtrack" onclick="this.classList.toggle('playing')"><div style="font-size:24px;">🌊</div><div><div style="font-size:14px;font-weight:700;">Healing Tones</div><div style="font-size:11px;color:var(--muted);">432Hz Frequency</div></div></div>
+      <div class="mtrack" id="mt-lofi" onclick="toggleMusic('lofi')"><div style="font-size:24px;">🎧</div><div><div style="font-size:14px;font-weight:700;">Lo-Fi Focus</div><div style="font-size:11px;color:var(--muted);">YouTube stream</div></div></div>
+      <div class="mtrack" id="mt-piano" onclick="toggleMusic('piano')"><div style="font-size:24px;">🎹</div><div><div style="font-size:14px;font-weight:700;">Deep Piano</div><div style="font-size:11px;color:var(--muted);">Relaxation</div></div></div>
+      <div class="mtrack" id="mt-freq" onclick="toggleMusic('freq')"><div style="font-size:24px;">🌊</div><div><div style="font-size:14px;font-weight:700;">Healing Tones</div><div style="font-size:11px;color:var(--muted);">432Hz Frequency</div></div></div>
+      <div id="yt-player" style="display:none;width:100%;height:100px;margin-top:20px;border-radius:12px;overflow:hidden;"></div>
     </div>
   </div>
 
@@ -260,8 +261,8 @@
     <div class="sheet">
       <div style="font-size:24px;font-weight:800;margin-bottom:12px;">Friend Support Chat</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Send a wellness check-in to a friend via WhatsApp.</div>
-      <button class="btn" style="background:#1a1a1a;color:#fff;width:100%;text-align:left;padding:12px;border-radius:12px;margin-bottom:8px;border:1px solid #333;" onclick="alert('Opening WhatsApp...')">"Hey, just checking in. How are you holding up with exams?"</button>
-      <button class="btn" style="background:#1a1a1a;color:#fff;width:100%;text-align:left;padding:12px;border-radius:12px;margin-bottom:8px;border:1px solid #333;" onclick="alert('Opening WhatsApp...')">"I'm feeling really burnt out today. Are you free to talk?"</button>
+      <button class="btn" style="background:#1a1a1a;color:#fff;width:100%;text-align:left;padding:12px;border-radius:12px;margin-bottom:8px;border:1px solid #333;" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('Hey, just checking in. How are you holding up with exams?'), '_blank')">"Hey, just checking in. How are you holding up with exams?"</button>
+      <button class="btn" style="background:#1a1a1a;color:#fff;width:100%;text-align:left;padding:12px;border-radius:12px;margin-bottom:8px;border:1px solid #333;" onclick="window.open('https://wa.me/?text=' + encodeURIComponent('I am feeling really burnt out today. Are you free to talk?'), '_blank')">"I'm feeling really burnt out today. Are you free to talk?"</button>
     </div>
   </div>
 
@@ -270,7 +271,7 @@
     <div class="sheet">
       <div style="font-size:24px;font-weight:800;margin-bottom:16px;">Leaderboard 🏆</div>
       <div class="ex-item" style="border-color:var(--yellow);"><div style="font-size:20px;font-weight:900;color:var(--yellow);width:20px;">1</div><div class="av" style="width:40px;height:40px;">R</div><div style="flex:1;"><div style="font-weight:800;">Rahul M.</div></div><div style="font-weight:800;color:var(--yellow);">1240 XP</div></div>
-      <div class="ex-item"><div style="font-size:20px;font-weight:900;color:#aaa;width:20px;">2</div><div class="av" style="width:40px;height:40px;">Y</div><div style="flex:1;"><div style="font-weight:800;">You</div></div><div style="font-weight:800;color:#aaa;">850 XP</div></div>
+      <div class="ex-item"><div style="font-size:20px;font-weight:900;color:#aaa;width:20px;">2</div><div class="av" style="width:40px;height:40px;">Y</div><div style="flex:1;"><div style="font-weight:800;">You</div></div><div style="font-weight:800;color:#aaa;" id="lb-you">850 XP</div></div>
       <div class="ex-item"><div style="font-size:20px;font-weight:900;color:#cd7f32;width:20px;">3</div><div class="av" style="width:40px;height:40px;">S</div><div style="flex:1;"><div style="font-weight:800;">Sneha P.</div></div><div style="font-weight:800;color:#cd7f32;">620 XP</div></div>
     </div>
   </div>

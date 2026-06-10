@@ -55,7 +55,8 @@ let app={
   sleepLogs:[],
   habits:{water:false, walk:false, read:false, phone:false, friend:false, date:''},
   aiMsgDate:'',
-  aiMsgCountToday:0
+  aiMsgCountToday:0,
+  xp: 0
 };
 
 // ═══════════════════════════════════════════════
@@ -82,6 +83,8 @@ function loadData(){
   app.aiMsgDate = lg('aid', new Date().toDateString());
   app.aiMsgCountToday = lg('aic', 0);
   if(app.aiMsgDate !== new Date().toDateString()) { app.aiMsgCountToday = 0; app.aiMsgDate = new Date().toDateString(); ls('aic',0); ls('aid',app.aiMsgDate); }
+  
+  app.xp = lg('xp', 850);
   
   const today = new Date().toDateString();
   const todayLog = app.moodLogs.find(m => m.date === today);
@@ -324,12 +327,14 @@ function renderHome(){
   `;
 }
 
+function addXP(amt) { app.xp += amt; ls('xp', app.xp); }
+
 function logMood(v){
   app.moodToday = v;
   const today = new Date().toDateString();
   const idx = app.moodLogs.findIndex(m => m.date === today);
   if(idx >= 0) app.moodLogs[idx].val = v;
-  else app.moodLogs.push({date: today, val: v});
+  else { app.moodLogs.push({date: today, val: v}); addXP(10); }
   ls('m', app.moodLogs);
   renderHome();
 }
@@ -351,6 +356,7 @@ function saveGratitude() {
   if(!t1) return;
   app.gratEntries.push({d: Date.now(), t1});
   ls('grat', app.gratEntries);
+  addXP(20);
   document.getElementById('grat-modal').style.display='none';
   document.getElementById('g1').value='';
   if(app.tab === 'journal') renderJournal();
@@ -558,7 +564,7 @@ function toggleHabit(k) { app.habits[k] = !app.habits[k]; ls('hab', app.habits);
 
 function openMusic() { if(requirePremium('Meditation Music')) return; document.getElementById('music-modal').style.display='flex'; }
 function openFriend() { if(requirePremium('Friend Chat')) return; document.getElementById('friend-modal').style.display='flex'; }
-function openLeaderboard() { if(requirePremium('Leaderboard')) return; document.getElementById('leaderboard-modal').style.display='flex'; }
+function openLeaderboard() { if(requirePremium('Leaderboard')) return; document.getElementById('leaderboard-modal').style.display='flex'; document.getElementById('lb-you').textContent = app.xp + ' XP'; }
 
 let pTmr = null, pLeft = 25*60;
 function startTimer() {
@@ -566,8 +572,42 @@ function startTimer() {
   pTmr = setInterval(()=>{
     pLeft--;
     document.getElementById('timer-disp').textContent = `${Math.floor(pLeft/60).toString().padStart(2,'0')}:${(pLeft%60).toString().padStart(2,'0')}`;
-    if(pLeft<=0) { clearInterval(pTmr); alert("Session complete! +50 XP"); }
+    if(pLeft<=0) { clearInterval(pTmr); addXP(50); alert("Session complete! +50 XP"); }
   }, 1000);
+}
+
+let audioCtx = null;
+let osc = null;
+function toggleMusic(type) {
+  document.getElementById('mt-lofi').classList.remove('playing');
+  document.getElementById('mt-piano').classList.remove('playing');
+  document.getElementById('mt-freq').classList.remove('playing');
+  document.getElementById('yt-player').style.display='none';
+  document.getElementById('yt-player').innerHTML='';
+  
+  if(osc) { try{osc.stop();}catch(e){} osc = null; }
+  if(app.curMusic === type) { app.curMusic = null; return; }
+  
+  app.curMusic = type;
+  document.getElementById('mt-'+type).classList.add('playing');
+  
+  if(type === 'freq') {
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(432, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+  } else if (type === 'lofi') {
+    document.getElementById('yt-player').style.display='block';
+    document.getElementById('yt-player').innerHTML = '<iframe width="100%" height="100" src="https://www.youtube.com/embed/jfKfPfyJRdk?autoplay=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>';
+  } else if (type === 'piano') {
+    document.getElementById('yt-player').style.display='block';
+    document.getElementById('yt-player').innerHTML = '<iframe width="100%" height="100" src="https://www.youtube.com/embed/n4rLz0_1Mms?autoplay=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>';
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -597,6 +637,7 @@ function saveVent(){
   if(!t) return closeVent();
   app.ventEntries.push({d: Date.now(), t});
   ls('v', app.ventEntries);
+  addXP(20);
   closeVent();
   if(app.tab === 'journal') renderJournal();
 }
@@ -647,10 +688,11 @@ function closeEx() {
 function runExPhase(stepIdx) {
   const e = app.pEx;
   if(stepIdx >= e.steps.length) {
+    addXP(50);
     document.getElementById('pb').innerHTML = `
       <div style="font-size:72px;margin-bottom:20px;">✅</div>
       <div style="font-size:24px;font-weight:800;margin-bottom:10px;text-align:center;">Great job!</div>
-      <div style="font-size:14px;color:var(--muted);text-align:center;margin-bottom:40px;">You just took 5 minutes for your mind.</div>
+      <div style="font-size:14px;color:var(--muted);text-align:center;margin-bottom:40px;">You just took 5 minutes for your mind. +50 XP</div>
       <button class="btn btn-primary" style="background:var(--green);color:#000;" onclick="closeEx()">Complete</button>
     `;
     return;
