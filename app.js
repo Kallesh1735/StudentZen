@@ -717,7 +717,7 @@ function sendAI() {
     
     if(lower.includes('exam') || lower.includes('jee') || lower.includes('neet') || lower.includes('test')) {
       reply = "Exam pressure is immense. Remember that your worth isn't defined by a rank or a score. If you're panicking right now, try the 'Exam Anxiety Reset' exercise on the Home tab. It takes 5 minutes.";
-    } else if(lower.includes('sleep') || lower.includes('can\\'t sleep') || lower.includes('insomnia')) {
+    } else if(lower.includes('sleep') || lower.includes("can't sleep") || lower.includes('insomnia')) {
       reply = "Racing thoughts at night are the worst. Try the 'Body Scan' exercise before bed—it helps tell your nervous system that it's safe to rest.";
     } else if(lower.includes('lonely') || lower.includes('alone') || lower.includes('hostel')) {
       reply = "Hostel life can be incredibly isolating, even when you're surrounded by people. You aren't the only one feeling this way. The 'Loneliness Lift' exercise might help ease that heavy feeling.";
