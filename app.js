@@ -267,7 +267,10 @@ function renderHome(){
 
 function logMood(v){
   app.moodToday = v;
-  app.moodLogs.push({date: new Date().toDateString(), val: v});
+  const today = new Date().toDateString();
+  const idx = app.moodLogs.findIndex(m => m.date === today);
+  if(idx >= 0) app.moodLogs[idx].val = v;
+  else app.moodLogs.push({date: today, val: v});
   ls('m', app.moodLogs);
   renderHome();
 }
@@ -329,7 +332,7 @@ function renderJournal(){
   const entriesHtml = app.ventEntries.length === 0 
     ? `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;">Your journal is empty.<br><br><button class="btn btn-primary" style="background:var(--purple);font-size:13px;padding:10px;" onclick="openVent()">Write your first entry</button></div>`
     : app.ventEntries.map((v, i) => `
-        <div class="card" style="border-left:3px solid var(--purple);">
+        <div class="card" style="border-left:3px solid var(--purple);cursor:pointer;" onclick="openJEntry(${i})">
           <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;">${new Date(v.d).toLocaleString()}</div>
           <div style="font-size:13px;line-height:1.5;">${v.t.substring(0, 80)}${v.t.length>80?'...':''}</div>
         </div>
@@ -413,6 +416,16 @@ function saveVent(){
   ls('v', app.ventEntries);
   closeVent();
   if(app.tab === 'journal') renderJournal();
+}
+
+function openJEntry(i) {
+  const v = app.ventEntries[i];
+  document.getElementById('jmod-c').innerHTML = `
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:700;">${new Date(v.d).toLocaleString()}</div>
+    <div style="font-size:15px;line-height:1.6;white-space:pre-wrap;margin-bottom:20px;color:#fff;">${v.t}</div>
+    <button class="btn btn-primary" style="background:var(--hi);color:#fff;width:100%;" onclick="document.getElementById('jmod').style.display='none'">Close</button>
+  `;
+  document.getElementById('jmod').style.display = 'flex';
 }
 
 // ═══════════════════════════════════════════════
