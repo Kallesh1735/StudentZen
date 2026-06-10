@@ -48,15 +48,23 @@ let app={
   filter:'All',
   ventEntries:[],
   moodLogs:[],
-  isPremium:false
+  isPremium:false,
+  examName:'',
+  examDate:0,
+  gratEntries:[],
+  sleepLogs:[],
+  habits:{water:false, walk:false, read:false, phone:false, friend:false, date:''},
+  aiMsgDate:'',
+  aiMsgCountToday:0
 };
 
 // ═══════════════════════════════════════════════
-// STORAGE
+// STORAGE & PAYWALL
 // ═══════════════════════════════════════════════
 const lk=k=>CU?`sz_${CU.uid}_${k}`:`sz_guest_${k}`;
 const lg=(k,d)=>{try{const v=localStorage.getItem(lk(k));return v!==null?JSON.parse(v):d;}catch{return d;}};
 const ls=(k,v)=>localStorage.setItem(lk(k),JSON.stringify(v));
+
 function loadData(){
   app.ventEntries=lg('v',[]);
   app.moodLogs=lg('m',[]);
@@ -64,10 +72,40 @@ function loadData(){
   if(PREMIUM_EMAILS.includes(CU?.email?.toLowerCase()))ls('premium',true);
   PIN=localStorage.getItem(`sz_pin_${CU?.uid||'guest'}`);
   
-  // Check if mood logged today
+  app.examName = lg('examn', '');
+  app.examDate = lg('examd', 0);
+  app.gratEntries = lg('grat', []);
+  app.sleepLogs = lg('slp', []);
+  app.habits = lg('hab', {water:false, walk:false, read:false, phone:false, friend:false, date:new Date().toDateString()});
+  if(app.habits.date !== new Date().toDateString()) app.habits = {water:false, walk:false, read:false, phone:false, friend:false, date:new Date().toDateString()};
+  
+  app.aiMsgDate = lg('aid', new Date().toDateString());
+  app.aiMsgCountToday = lg('aic', 0);
+  if(app.aiMsgDate !== new Date().toDateString()) { app.aiMsgCountToday = 0; app.aiMsgDate = new Date().toDateString(); ls('aic',0); ls('aid',app.aiMsgDate); }
+  
   const today = new Date().toDateString();
   const todayLog = app.moodLogs.find(m => m.date === today);
   if(todayLog) app.moodToday = todayLog.val;
+}
+
+function requirePremium(feat) {
+  if(!app.isPremium) {
+    document.getElementById('sub-modal').style.display='flex';
+    return true;
+  }
+  return false;
+}
+
+function checkJournalLimit() {
+  if(app.isPremium) return false;
+  const currentMonth = new Date().getMonth();
+  const allEntries = [...app.ventEntries, ...app.gratEntries];
+  const thisMonthCount = allEntries.filter(e => new Date(e.d).getMonth() === currentMonth).length;
+  if(thisMonthCount >= 5) {
+     requirePremium('Journal Limits');
+     return true;
+  }
+  return false;
 }
 
 // ═══════════════════════════════════════════════
@@ -121,7 +159,7 @@ function logout(){localStorage.removeItem('sz_cu');CU=null;PIN=null;document.get
 function activatePremium(){app.isPremium=true;ls('premium',true);document.getElementById('sub-modal').style.display='none';renderAll();alert('🎉 Welcome to Premium! All features unlocked.');}
 
 // ═══════════════════════════════════════════════
-// PIN
+// PIN & ONBOARDING
 // ═══════════════════════════════════════════════
 function showSetPin(){spStage='first';spFirst='';spEntry='';document.getElementById('sperr').textContent='';updateSPDots();document.getElementById('setpin').style.display='flex';buildKP('spkp',spPress);}
 function skipPin(){document.getElementById('setpin').style.display='none';if(!localStorage.getItem(`sz_ob_${CU.uid}`))showOB();else launch();}
@@ -150,9 +188,6 @@ function buildKP(id,fn){
   [1,2,3,4,5,6,7,8,9,'',0,'⌫'].forEach(k=>{const b=document.createElement('button');b.className='pkey';b.style.cssText=k===''?'visibility:hidden;margin:0 auto;':'margin:0 auto;';b.textContent=k;if(k!=='')b.onclick=()=>fn(k);kp.appendChild(b);});
 }
 
-// ═══════════════════════════════════════════════
-// ONBOARDING
-// ═══════════════════════════════════════════════
 let obStep=0;
 function showOB(){document.getElementById('ob').style.display='flex';obStep=0;renderOB();}
 function renderOB(){
@@ -195,7 +230,6 @@ function renderAll(){
   if(app.tab==='tools') renderTools();
   if(app.tab==='account') renderAccount();
   
-  // Render sub features
   const f = document.getElementById('sub-features');
   if(f) {
       f.innerHTML = [['✓','All 6 guided exercises'],['✓','Unlimited journal entries'],['✓','Vent Space'],['✓','Full progress analytics'],['✓','Priority Zen AI'],['✓','Sleep tracker'],['✓','Study timer'],['✓','Habit tracker'],['✓','Meditation music'],['✓','Leaderboard & friend chat'],['✓','Weekly wellness report'],['✓','Exam countdown']].map(([s,fx])=>`<div class="prow"><span style="color:var(--yellow);font-weight:800;">${s}</span>${fx}</div>`).join('');
@@ -224,6 +258,27 @@ function renderHome(){
     `;
   }
 
+  let examHtml = '';
+  if(app.examName && app.examDate) {
+      const days = Math.max(0, Math.ceil((app.examDate - Date.now()) / (1000*60*60*24)));
+      examHtml = `
+      <div class="card card-tap" style="background:linear-gradient(135deg, rgba(0,255,178,.1), rgba(0,229,255,.1)); border-color:rgba(0,255,178,.3); display:flex; align-items:center; gap:14px; margin-bottom:12px;" onclick="openExamModal()">
+        <div style="background:#000; padding:10px 14px; border-radius:12px; text-align:center; border:1px solid #222;">
+          <div style="font-size:10px; color:var(--muted); font-weight:700;">DAYS</div>
+          <div style="font-size:24px; font-weight:900; color:var(--green);">${days}</div>
+        </div>
+        <div>
+          <div style="font-size:14px; font-weight:800; color:#fff;">${app.examName}</div>
+          <div style="font-size:11px; color:var(--muted);">Countdown</div>
+        </div>
+      </div>`;
+  } else {
+      examHtml = `<div class="card card-tap" style="border-style:dashed; border-color:#444; display:flex; align-items:center; gap:10px; margin-bottom:12px;" onclick="openExamModal()">
+        <div style="font-size:24px;">📅</div>
+        <div><div style="font-size:13px; font-weight:800;">Set Exam Countdown</div><div style="font-size:11px; color:var(--muted);">Track your target date</div></div>
+      </div>`;
+  }
+
   document.getElementById('sc-home').innerHTML = `
     <div class="fu">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-top:10px;">
@@ -234,6 +289,7 @@ function renderHome(){
         <button class="btn" style="background:linear-gradient(135deg,var(--pink),var(--purple));padding:8px 14px;border-radius:20px;color:#000;font-size:12px;font-weight:700;" onclick="openAI()">🤖 Zen AI</button>
       </div>
 
+      ${examHtml}
       ${moodHtml}
 
       <div style="margin:20px 0;">
@@ -252,13 +308,16 @@ function renderHome(){
         </div>
       </div>
       
-      <div class="card card-tap" style="margin-top:20px;background:#1a1a1a;border-color:var(--purple);" onclick="openVent()">
-        <div style="display:flex;align-items:center;gap:14px;">
-          <div style="font-size:28px;">✍️</div>
-          <div>
-            <div style="font-size:14px;font-weight:800;color:var(--purple);">Vent Space</div>
-            <div style="font-size:11px;color:var(--muted);">Write out your thoughts privately</div>
-          </div>
+      <div style="display:flex; gap:10px; margin-top:20px;">
+        <div class="card card-tap" style="flex:1; background:#1a1a1a; border-color:var(--purple); padding:14px;" onclick="openVent()">
+          <div style="font-size:24px; margin-bottom:4px;">✍️</div>
+          <div style="font-size:13px; font-weight:800; color:var(--purple);">Vent Space</div>
+          <div style="font-size:10px; color:var(--muted);">Private writing</div>
+        </div>
+        <div class="card card-tap" style="flex:1; background:#1a1a1a; border-color:var(--cyan); padding:14px;" onclick="document.getElementById('grat-modal').style.display='flex'">
+          <div style="font-size:24px; margin-bottom:4px;">🙏</div>
+          <div style="font-size:13px; font-weight:800; color:var(--cyan);">Gratitude</div>
+          <div style="font-size:10px; color:var(--muted);">3 things daily</div>
         </div>
       </div>
     </div>
@@ -273,6 +332,28 @@ function logMood(v){
   else app.moodLogs.push({date: today, val: v});
   ls('m', app.moodLogs);
   renderHome();
+}
+
+function openExamModal() {
+  document.getElementById('exam-modal').style.display='flex';
+}
+function saveExam() {
+  app.examName = document.getElementById('exam-name').value;
+  app.examDate = new Date(document.getElementById('exam-date').value).getTime();
+  ls('examn', app.examName); ls('examd', app.examDate);
+  document.getElementById('exam-modal').style.display='none';
+  renderHome();
+}
+
+function saveGratitude() {
+  if(checkJournalLimit()) return;
+  const t1 = document.getElementById('g1').value.trim();
+  if(!t1) return;
+  app.gratEntries.push({d: Date.now(), t1});
+  ls('grat', app.gratEntries);
+  document.getElementById('grat-modal').style.display='none';
+  document.getElementById('g1').value='';
+  if(app.tab === 'journal') renderJournal();
 }
 
 function renderExercises(){
@@ -303,7 +384,6 @@ function renderExercises(){
 }
 
 function renderJournal(){
-  // Calculate 7-day mood chart
   const today = new Date();
   const days = [];
   for(let i=6; i>=0; i--) {
@@ -329,18 +409,39 @@ function renderJournal(){
   });
   chartHtml += '</div>';
 
-  const entriesHtml = app.ventEntries.length === 0 
+  const allEntries = [...app.ventEntries.map(v=>({type:'Vent', d:v.d, t:v.t})), ...app.gratEntries.map(g=>({type:'Gratitude', d:g.d, t:g.t1}))].sort((a,b)=>b.d - a.d);
+
+  const entriesHtml = allEntries.length === 0 
     ? `<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;">Your journal is empty.<br><br><button class="btn btn-primary" style="background:var(--purple);font-size:13px;padding:10px;" onclick="openVent()">Write your first entry</button></div>`
-    : app.ventEntries.map((v, i) => `
-        <div class="card" style="border-left:3px solid var(--purple);cursor:pointer;" onclick="openJEntry(${i})">
-          <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;">${new Date(v.d).toLocaleString()}</div>
+    : allEntries.map((v, i) => `
+        <div class="card" style="border-left:3px solid ${v.type==='Vent'?'var(--purple)':'var(--cyan)'};cursor:pointer;" onclick="openJEntry(${i})">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:700;display:flex;justify-content:space-between;"><span>${new Date(v.d).toLocaleString()}</span><span style="color:${v.type==='Vent'?'var(--purple)':'var(--cyan)'};">${v.type}</span></div>
           <div style="font-size:13px;line-height:1.5;">${v.t.substring(0, 80)}${v.t.length>80?'...':''}</div>
         </div>
-      `).reverse().join('');
+      `).join('');
+
+  const avgMood = app.moodLogs.length ? (app.moodLogs.reduce((a,b)=>a+b.val,0)/app.moodLogs.length).toFixed(1) : '0';
+  const hDone = Object.values(app.habits).filter(x=>x===true).length;
 
   document.getElementById('sc-journal').innerHTML = `
     <div class="fu">
       <div style="font-size:24px;font-weight:800;margin-bottom:12px;">My Progress</div>
+      
+      <div class="card" style="display:flex; gap:10px; margin-bottom:16px;">
+        <div style="flex:1; text-align:center;">
+          <div style="font-size:24px; font-weight:900; color:var(--green);">${avgMood}/6</div>
+          <div style="font-size:10px; color:var(--muted); font-weight:700;">AVG MOOD</div>
+        </div>
+        <div style="flex:1; text-align:center;">
+          <div style="font-size:24px; font-weight:900; color:var(--yellow);">${hDone}/5</div>
+          <div style="font-size:10px; color:var(--muted); font-weight:700;">HABITS TODAY</div>
+        </div>
+        <div style="flex:1; text-align:center;">
+          <div style="font-size:24px; font-weight:900; color:var(--pink);">${allEntries.length}</div>
+          <div style="font-size:10px; color:var(--muted); font-weight:700;">JOURNALS</div>
+        </div>
+      </div>
+
       <div class="card">
         <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;">WEEKLY MOOD</div>
         ${chartHtml}
@@ -355,9 +456,53 @@ function renderTools(){
   document.getElementById('sc-tools').innerHTML = `
     <div class="fu">
       <div style="font-size:24px;font-weight:800;margin-bottom:20px;">Tools</div>
-      <div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;background:var(--hi);border-radius:16px;">
-        <div style="font-size:32px;margin-bottom:12px;">🚧</div>
-        Habit Tracker, Sleep Analytics, and Study Timer are coming soon in Phase 2!
+      
+      <div class="card card-tap" style="display:flex; align-items:center; gap:14px;" onclick="openTimer()">
+        <div style="font-size:32px;">⏱️</div>
+        <div style="flex:1;">
+          <div style="font-size:15px; font-weight:800;">Study Timer <span class="tag" style="background:var(--green);color:#000;">NEW</span></div>
+          <div style="font-size:12px; color:var(--muted);">Pomodoro focus sessions</div>
+        </div>
+      </div>
+
+      <div class="card card-tap" style="display:flex; align-items:center; gap:14px;" onclick="openSleep()">
+        <div style="font-size:32px;">🌙</div>
+        <div style="flex:1;">
+          <div style="font-size:15px; font-weight:800;">Sleep Tracker <span class="tag" style="background:var(--green);color:#000;">NEW</span></div>
+          <div style="font-size:12px; color:var(--muted);">Track your rest quality</div>
+        </div>
+      </div>
+
+      <div class="card card-tap" style="display:flex; align-items:center; gap:14px;" onclick="openHabits()">
+        <div style="font-size:32px;">✅</div>
+        <div style="flex:1;">
+          <div style="font-size:15px; font-weight:800;">Habit Tracker <span class="tag" style="background:var(--green);color:#000;">NEW</span></div>
+          <div style="font-size:12px; color:var(--muted);">Build daily wellness habits</div>
+        </div>
+      </div>
+
+      <div class="card card-tap" style="display:flex; align-items:center; gap:14px;" onclick="openMusic()">
+        <div style="font-size:32px;">🎵</div>
+        <div style="flex:1;">
+          <div style="font-size:15px; font-weight:800;">Meditation Music <span class="tag" style="background:var(--green);color:#000;">NEW</span></div>
+          <div style="font-size:12px; color:var(--muted);">3 audio types combined</div>
+        </div>
+      </div>
+
+      <div class="card card-tap" style="display:flex; align-items:center; gap:14px;" onclick="openFriend()">
+        <div style="font-size:32px;">💬</div>
+        <div style="flex:1;">
+          <div style="font-size:15px; font-weight:800;">Friend Support Chat <span class="tag" style="background:var(--green);color:#000;">NEW</span></div>
+          <div style="font-size:12px; color:var(--muted);">Talk to your circle</div>
+        </div>
+      </div>
+
+      <div class="card card-tap" style="display:flex; align-items:center; gap:14px;" onclick="openLeaderboard()">
+        <div style="font-size:32px;">🏆</div>
+        <div style="flex:1;">
+          <div style="font-size:15px; font-weight:800;">Leaderboard <span class="tag" style="background:var(--green);color:#000;">NEW</span></div>
+          <div style="font-size:12px; color:var(--muted);">Compete with friends</div>
+        </div>
       </div>
     </div>
   `;
@@ -390,9 +535,46 @@ function renderAccount(){
 }
 
 // ═══════════════════════════════════════════════
+// NEW V2 MODAL HANDLERS
+// ═══════════════════════════════════════════════
+function openTimer() { if(requirePremium('Timer')) return; document.getElementById('timer-modal').style.display='flex'; }
+function openSleep() { if(requirePremium('Sleep Tracking')) return; document.getElementById('sleep-modal').style.display='flex'; }
+function saveSleep() {
+  const hrs = document.getElementById('slp-hrs').value;
+  if(hrs) { app.sleepLogs.push({d: new Date().toDateString(), hrs}); ls('slp', app.sleepLogs); }
+  document.getElementById('sleep-modal').style.display='none';
+  if(app.tab === 'journal') renderJournal();
+}
+function openHabits() { if(requirePremium('Habit Tracking')) return; document.getElementById('habit-modal').style.display='flex'; renderHabits(); }
+function renderHabits() {
+  document.getElementById('habit-list').innerHTML = ['water','walk','read','phone','friend'].map(k => `
+    <div class="ex-item" style="border-color:${app.habits[k]?'var(--green)':'var(--b)'};" onclick="toggleHabit('${k}')">
+      <div class="hchk ${app.habits[k]?'done':''}">${app.habits[k]?'✓':''}</div>
+      <div style="font-weight:700;font-size:14px;flex:1;text-transform:capitalize;">${k === 'phone' ? 'Phone-free time' : k === 'friend' ? 'Talk to friend' : k}</div>
+    </div>
+  `).join('');
+}
+function toggleHabit(k) { app.habits[k] = !app.habits[k]; ls('hab', app.habits); renderHabits(); if(app.tab === 'journal') renderJournal(); }
+
+function openMusic() { if(requirePremium('Meditation Music')) return; document.getElementById('music-modal').style.display='flex'; }
+function openFriend() { if(requirePremium('Friend Chat')) return; document.getElementById('friend-modal').style.display='flex'; }
+function openLeaderboard() { if(requirePremium('Leaderboard')) return; document.getElementById('leaderboard-modal').style.display='flex'; }
+
+let pTmr = null, pLeft = 25*60;
+function startTimer() {
+  clearInterval(pTmr);
+  pTmr = setInterval(()=>{
+    pLeft--;
+    document.getElementById('timer-disp').textContent = `${Math.floor(pLeft/60).toString().padStart(2,'0')}:${(pLeft%60).toString().padStart(2,'0')}`;
+    if(pLeft<=0) { clearInterval(pTmr); alert("Session complete! +50 XP"); }
+  }, 1000);
+}
+
+// ═══════════════════════════════════════════════
 // VENT SPACE
 // ═══════════════════════════════════════════════
 function openVent(){
+  if(requirePremium('Vent Space')) return;
   document.getElementById('vent').style.display = 'flex';
   document.getElementById('venttxt').value = '';
   document.getElementById('vwc').textContent = '0 words';
@@ -410,6 +592,7 @@ function closeVent(){
 }
 
 function saveVent(){
+  if(checkJournalLimit()) return;
   const t = document.getElementById('venttxt').value.trim();
   if(!t) return closeVent();
   app.ventEntries.push({d: Date.now(), t});
@@ -419,7 +602,8 @@ function saveVent(){
 }
 
 function openJEntry(i) {
-  const v = app.ventEntries[i];
+  const allEntries = [...app.ventEntries.map(v=>({type:'Vent', d:v.d, t:v.t})), ...app.gratEntries.map(g=>({type:'Gratitude', d:g.d, t:g.t1}))].sort((a,b)=>b.d - a.d);
+  const v = allEntries[i];
   document.getElementById('jmod-c').innerHTML = `
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:700;">${new Date(v.d).toLocaleString()}</div>
     <div style="font-size:15px;line-height:1.6;white-space:pre-wrap;margin-bottom:20px;color:#fff;">${v.t}</div>
@@ -463,7 +647,6 @@ function closeEx() {
 function runExPhase(stepIdx) {
   const e = app.pEx;
   if(stepIdx >= e.steps.length) {
-    // Finished
     document.getElementById('pb').innerHTML = `
       <div style="font-size:72px;margin-bottom:20px;">✅</div>
       <div style="font-size:24px;font-weight:800;margin-bottom:10px;text-align:center;">Great job!</div>
@@ -497,6 +680,7 @@ function runExPhase(stepIdx) {
 // ZEN AI MOCK
 // ═══════════════════════════════════════════════
 function openAI() {
+  if(!app.isPremium && app.aiMsgCountToday >= 10) { requirePremium('AI Limits'); return; }
   document.getElementById('aisc').style.display = 'flex';
   const msgs = document.getElementById('ai-msgs');
   if(msgs.innerHTML === '') {
@@ -509,9 +693,13 @@ function closeAI() {
 }
 
 function sendAI() {
+  if(!app.isPremium && app.aiMsgCountToday >= 10) { requirePremium('AI Limits'); return; }
+  
   const inp = document.getElementById('ai-inp');
   const text = inp.value.trim();
   if(!text) return;
+  
+  app.aiMsgCountToday++; ls('aic', app.aiMsgCountToday);
   
   inp.value = '';
   const msgs = document.getElementById('ai-msgs');
@@ -522,7 +710,6 @@ function sendAI() {
   msgs.innerHTML += `<div class="aib ai" id="${typingId}"><div class="dtdot"><span></span><span></span><span></span></div></div>`;
   msgs.scrollTop = msgs.scrollHeight;
   
-  // Mock AI response logic
   setTimeout(() => {
     document.getElementById(typingId).remove();
     let reply = "I hear you. That sounds really tough. Taking a deep breath can help center you right now.";
@@ -530,7 +717,7 @@ function sendAI() {
     
     if(lower.includes('exam') || lower.includes('jee') || lower.includes('neet') || lower.includes('test')) {
       reply = "Exam pressure is immense. Remember that your worth isn't defined by a rank or a score. If you're panicking right now, try the 'Exam Anxiety Reset' exercise on the Home tab. It takes 5 minutes.";
-    } else if(lower.includes('sleep') || lower.includes('can\'t sleep') || lower.includes('insomnia')) {
+    } else if(lower.includes('sleep') || lower.includes('can\\'t sleep') || lower.includes('insomnia')) {
       reply = "Racing thoughts at night are the worst. Try the 'Body Scan' exercise before bed—it helps tell your nervous system that it's safe to rest.";
     } else if(lower.includes('lonely') || lower.includes('alone') || lower.includes('hostel')) {
       reply = "Hostel life can be incredibly isolating, even when you're surrounded by people. You aren't the only one feeling this way. The 'Loneliness Lift' exercise might help ease that heavy feeling.";
@@ -561,5 +748,4 @@ function enableNotifications() {
   }
 }
 
-// INITIALIZE
 boot();

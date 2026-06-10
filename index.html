@@ -193,6 +193,88 @@
       <span>Account</span><div class="ndot"></div>
     </button>
   </nav>
+
+  <!-- EXAM MODAL -->
+  <div id="exam-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet">
+      <div style="font-size:24px;font-weight:800;margin-bottom:12px;">Set Exam Countdown</div>
+      <input class="inp" id="exam-name" placeholder="E.g. JEE Mains" style="margin-bottom:12px;"/>
+      <input class="inp" id="exam-date" type="date" style="margin-bottom:16px;"/>
+      <button class="btn btn-primary" style="background:var(--green);color:#000;" onclick="saveExam()">Save Countdown</button>
+    </div>
+  </div>
+
+  <!-- GRATITUDE MODAL -->
+  <div id="grat-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet">
+      <div style="font-size:24px;font-weight:800;margin-bottom:12px;">Gratitude Diary</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Write 1 to 3 things you are grateful for today.</div>
+      <input class="inp" id="g1" placeholder="1. I am grateful for..." style="margin-bottom:8px;"/>
+      <button class="btn btn-primary" style="background:var(--cyan);color:#000;margin-top:8px;" onclick="saveGratitude()">Save</button>
+    </div>
+  </div>
+
+  <!-- TIMER MODAL -->
+  <div id="timer-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet" style="text-align:center;">
+      <div style="font-size:24px;font-weight:800;margin-bottom:12px;">Study Timer</div>
+      <div style="font-size:64px;font-weight:900;color:var(--green);font-variant-numeric:tabular-nums;margin-bottom:20px;" id="timer-disp">25:00</div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" style="background:var(--green);color:#000;flex:1;" onclick="startTimer()">Start</button>
+        <button class="btn" style="background:#222;color:#fff;padding:15px;border-radius:50px;flex:1;" onclick="clearInterval(pTmr);pLeft=25*60;document.getElementById('timer-disp').textContent='25:00'">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HABIT MODAL -->
+  <div id="habit-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet">
+      <div style="font-size:24px;font-weight:800;margin-bottom:12px;">Daily Habits</div>
+      <div id="habit-list"></div>
+      <button class="btn btn-primary" style="background:#222;color:#fff;margin-top:12px;" onclick="document.getElementById('habit-modal').style.display='none'">Done</button>
+    </div>
+  </div>
+
+  <!-- SLEEP MODAL -->
+  <div id="sleep-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet">
+      <div style="font-size:24px;font-weight:800;margin-bottom:12px;">Sleep Tracker</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">How many hours did you sleep?</div>
+      <input class="inp" type="number" id="slp-hrs" placeholder="E.g. 7" style="margin-bottom:12px;"/>
+      <button class="btn btn-primary" style="background:var(--yellow);color:#000;" onclick="saveSleep()">Log Sleep</button>
+    </div>
+  </div>
+
+  <!-- MUSIC MODAL -->
+  <div id="music-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet">
+      <div style="font-size:24px;font-weight:800;margin-bottom:16px;">Meditation Music</div>
+      <div class="mtrack" onclick="this.classList.toggle('playing')"><div style="font-size:24px;">🎧</div><div><div style="font-size:14px;font-weight:700;">Lo-Fi Focus</div><div style="font-size:11px;color:var(--muted);">YouTube stream</div></div></div>
+      <div class="mtrack" onclick="this.classList.toggle('playing')"><div style="font-size:24px;">🎹</div><div><div style="font-size:14px;font-weight:700;">Deep Piano</div><div style="font-size:11px;color:var(--muted);">Relaxation</div></div></div>
+      <div class="mtrack" onclick="this.classList.toggle('playing')"><div style="font-size:24px;">🌊</div><div><div style="font-size:14px;font-weight:700;">Healing Tones</div><div style="font-size:11px;color:var(--muted);">432Hz Frequency</div></div></div>
+    </div>
+  </div>
+
+  <!-- FRIEND MODAL -->
+  <div id="friend-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet">
+      <div style="font-size:24px;font-weight:800;margin-bottom:12px;">Friend Support Chat</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;">Send a wellness check-in to a friend via WhatsApp.</div>
+      <button class="btn" style="background:#1a1a1a;color:#fff;width:100%;text-align:left;padding:12px;border-radius:12px;margin-bottom:8px;border:1px solid #333;" onclick="alert('Opening WhatsApp...')">"Hey, just checking in. How are you holding up with exams?"</button>
+      <button class="btn" style="background:#1a1a1a;color:#fff;width:100%;text-align:left;padding:12px;border-radius:12px;margin-bottom:8px;border:1px solid #333;" onclick="alert('Opening WhatsApp...')">"I'm feeling really burnt out today. Are you free to talk?"</button>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD MODAL -->
+  <div id="leaderboard-modal" class="overlay" style="display:none;" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet">
+      <div style="font-size:24px;font-weight:800;margin-bottom:16px;">Leaderboard 🏆</div>
+      <div class="ex-item" style="border-color:var(--yellow);"><div style="font-size:20px;font-weight:900;color:var(--yellow);width:20px;">1</div><div class="av" style="width:40px;height:40px;">R</div><div style="flex:1;"><div style="font-weight:800;">Rahul M.</div></div><div style="font-weight:800;color:var(--yellow);">1240 XP</div></div>
+      <div class="ex-item"><div style="font-size:20px;font-weight:900;color:#aaa;width:20px;">2</div><div class="av" style="width:40px;height:40px;">Y</div><div style="flex:1;"><div style="font-weight:800;">You</div></div><div style="font-weight:800;color:#aaa;">850 XP</div></div>
+      <div class="ex-item"><div style="font-size:20px;font-weight:900;color:#cd7f32;width:20px;">3</div><div class="av" style="width:40px;height:40px;">S</div><div style="flex:1;"><div style="font-weight:800;">Sneha P.</div></div><div style="font-weight:800;color:#cd7f32;">620 XP</div></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- MODALS -->
