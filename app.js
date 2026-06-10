@@ -158,9 +158,9 @@ function showOB(){document.getElementById('ob').style.display='flex';obStep=0;re
 function renderOB(){
   document.getElementById('obprog').style.width=((obStep+1)/(QUIZ.length+2)*100)+'%';
   const c=document.getElementById('obcontent');
-  if(obStep===0){c.innerHTML=`<div class="fu" style="text-align:center;"><div style="font-size:70px;margin-bottom:16px;">🧘</div><div style="font-size:34px;font-weight:900;margin-bottom:8px;" class="gr">Hi, ${CU.name?.split(' ')[0]||'there'}!</div><div style="font-size:15px;color:#aaa;line-height:1.7;margin-bottom:32px;">Let us personalise StudentZen for you. Just 4 quick questions.</div><button class="btn btn-primary" style="background:var(--pink);" onclick="obNext()">Let's go →</button></div>`;}
+  if(obStep===0){c.innerHTML=`<div class="fu" style="text-align:center;"><div style="font-size:70px;margin-bottom:16px;">🧘</div><div style="font-size:34px;font-weight:900;margin-bottom:8px;" class="gr">Hi, ${CU.name?.split(' ')[0]||'there'}!</div><div style="font-size:15px;color:#aaa;line-height:1.7;margin-bottom:32px;">Let us personalise MindGap for you. Just 4 quick questions.</div><button class="btn btn-primary" style="background:var(--pink);" onclick="obNext()">Let's go →</button></div>`;}
   else if(obStep>=1&&obStep<=QUIZ.length){const q=QUIZ[obStep-1];c.innerHTML=`<div class="fu"><div style="font-size:10px;color:var(--pink);font-weight:700;letter-spacing:2px;margin-bottom:10px;">QUESTION ${obStep} OF ${QUIZ.length}</div><div style="font-size:20px;font-weight:800;margin-bottom:22px;line-height:1.3;">${q.q}</div><div style="display:flex;flex-direction:column;gap:10px;">${q.opts.map(o=>`<button class="qopt" onclick="obPick()">${o}</button>`).join('')}</div></div>`;}
-  else{c.innerHTML=`<div class="fu" style="text-align:center;"><div style="font-size:64px;margin-bottom:16px;">✅</div><div style="font-size:24px;font-weight:800;margin-bottom:10px;">You are all set!</div><div style="font-size:14px;color:#aaa;margin-bottom:32px;line-height:1.7;">Remember: asking for help is strength, not weakness.</div><button class="btn btn-primary" style="background:linear-gradient(135deg,var(--pink),var(--purple));" onclick="obFinish()">Enter StudentZen →</button></div>`;}
+  else{c.innerHTML=`<div class="fu" style="text-align:center;"><div style="font-size:64px;margin-bottom:16px;">✅</div><div style="font-size:24px;font-weight:800;margin-bottom:10px;">You are all set!</div><div style="font-size:14px;color:#aaa;margin-bottom:32px;line-height:1.7;">Remember: asking for help is strength, not weakness.</div><button class="btn btn-primary" style="background:linear-gradient(135deg,var(--pink),var(--purple));" onclick="obFinish()">Enter MindGap →</button></div>`;}
 }
 function obNext(){obStep++;renderOB();}
 function obPick(){setTimeout(obNext,200);}
@@ -537,12 +537,12 @@ function enableNotifications() {
   if (!("Notification" in window)) {
     alert("This browser does not support desktop notifications.");
   } else if (Notification.permission === "granted") {
-    new Notification("StudentZen", { body: "You're all set! We'll remind you to check in daily." });
+    new Notification("MindGap", { body: "You're all set! We'll remind you to check in daily." });
     alert("Notifications are already enabled!");
   } else if (Notification.permission !== "denied") {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted") {
-        new Notification("StudentZen", { body: "You're all set! We'll remind you to check in daily." });
+        new Notification("MindGap", { body: "You're all set! We'll remind you to check in daily." });
       }
     });
   }

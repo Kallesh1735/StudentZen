@@ -1,6 +1,6 @@
 {
-  "name": "StudentZen",
-  "short_name": "StudentZen",
+  "name": "MindGap",
+  "short_name": "MindGap",
   "description": "A private, AI-powered wellness companion for Indian students.",
   "start_url": "./index.html",
   "display": "standalone",
